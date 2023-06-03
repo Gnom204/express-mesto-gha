@@ -1,74 +1,100 @@
 const Card = require('../models/card');
+const {
+  badRequest,
+  serverError,
+  createRequest,
+  notFound,
+  goodRequest,
+} = require('../utils/constants'); // Статусы и сообщения об ошибке
 
-getCards = (req, res) => {
+const getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
-      res.status(200).send({ data: cards })
+      res.status(goodRequest.status).send({ data: cards });
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+    .catch(() => {
+      res.status(serverError.status).send({ message: serverError.message });
+    });
+};
 
-createCards = (req, res) => {
-  console.log(req.body)
+const createCards = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(201).send({ data: card })
+      res.status(createRequest.status).send({ data: card });
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
-deleteCard = (req, res) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Неправильный id' })
+        res.status(notFound.status).send({ message: notFound.message });
       } else {
-        res.status(200).send({ message: 'карточка удалена' })
+        res.status(goodRequest.status).send({ message: goodRequest.message });
       }
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
+    });
+};
 
-likeCard = (req, res) => {
+const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((user) => {
-      res.status(200).send(user.likes)
+    .then((card) => {
+      if (!card) {
+        res.status(notFound.status).send({ message: notFound.message });
+      } else {
+        res.status(200).send(card.likes);
+      }
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
+    });
+};
 
-dislikeCard = (req, res) => {
+const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((user) => {
-      res.status(200).send(user.likes)
+    .then((card) => {
+      if (!card) {
+        res.status(notFound.status).send({ message: notFound.message });
+      } else {
+        res.status(200).send(card.likes);
+      }
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
+    });
+};
 
 module.exports = {
   getCards,
   createCards,
   deleteCard,
   likeCard,
-  dislikeCard
-}
+  dislikeCard,
+};

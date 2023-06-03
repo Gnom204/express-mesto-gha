@@ -1,73 +1,88 @@
 const User = require('../models/user');
+const {
+  badRequest,
+  serverError,
+  createRequest,
+  notFound,
+  goodRequest,
+} = require('../utils/constants'); // Статусы и сообщения об ошибке
 
-getUsers = (req, res) => {
+const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
-      if (!users) {
-        res.status(404).send({ message: 'Пользователь не найден' })
-      }
-      res.status(200).send({ data: users })
+      res.status(goodRequest.status).send({ data: users });
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
+    .catch(() => {
+      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
-getUserById = (req, res) => {
-  const userId = req.params.userId;
+const getUserById = (req, res) => {
+  const { userId } = req.params;
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: 'Пользователь не найден' })
+        res.status(notFound.status).send({ message: notFound.message });
+      } else {
+        res.status(goodRequest.status).send(user);
       }
-      res.status(200).send(user);
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message })
+      if (err.name === 'CastError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
-createUsers = (req, res) => {
-  console.log(req.body)
+const createUsers = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
     .then((user) => {
-      res.status(201).send({ data: user })
+      res.status(createRequest.status).send({ data: user });
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
-updateProfile = (req, res) => {
+const opt = { new: true, runValidators: true };
+
+const updateProfile = (req, res) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, {
-    name: name,
-    about: about
-  })
+    name,
+    about,
+  }, opt)
     .then((user) => {
-      res.status(200).send(user)
+      res.status(goodRequest.status).send(user);
     })
     .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+      res.status(500).send({ message: error.message });
+    });
+};
 
-updateAvatar = (req, res) => {
+const updateAvatar = (req, res) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, {
-    avatar: avatar
+    avatar,
   })
     .then((user) => {
-      res.status(200).send(user)
+      res.status(200).send(user);
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message })
-    })
-}
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(badRequest.status).send({ message: badRequest.message });
+      }
+      res.status(serverError.status).send({ message: serverError.message });
+    });
+};
 
 module.exports = {
   getUsers,
@@ -75,4 +90,4 @@ module.exports = {
   createUsers,
   updateProfile,
   updateAvatar,
-}
+};
