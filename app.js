@@ -21,12 +21,12 @@ app.use((req, res, next) => {
 
   next();
 });
-app.use((req, res) => {
-  res.status(notFound.status).send({ message: notFound.message });
-});
 
 app.use(router);
 app.use(cardRouter);
+app.use((req, res) => {
+  res.status(notFound.status).send({ message: notFound.message });
+});
 
 app.listen(PORT, () => {
   console.log(`Сервер работает на порту ${PORT}`);
