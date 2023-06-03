@@ -66,7 +66,7 @@ const updateProfile = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(badRequest.status).send(badRequest.message);
+        res.status(badRequest.status).send({ message: badRequest.message });
       } else {
         res.status(serverError.status).send({ message: serverError.message });
       }
@@ -80,7 +80,7 @@ const updateAvatar = (req, res) => {
     avatar,
   }, opt)
     .then((user) => {
-      res.status(200).send(user);
+      res.status(goodRequest.status).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
