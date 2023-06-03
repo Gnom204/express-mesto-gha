@@ -27,8 +27,9 @@ const createCards = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -44,8 +45,9 @@ const deleteCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -65,8 +67,9 @@ const likeCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -86,8 +89,9 @@ const dislikeCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 

@@ -30,8 +30,9 @@ const getUserById = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -45,8 +46,9 @@ const createUsers = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 
@@ -62,8 +64,12 @@ const updateProfile = (req, res) => {
     .then((user) => {
       res.status(goodRequest.status).send(user);
     })
-    .catch((error) => {
-      res.status(500).send({ message: error.message });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(badRequest.status).send(badRequest.message);
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
+      }
     });
 };
 
@@ -72,15 +78,16 @@ const updateAvatar = (req, res) => {
 
   User.findByIdAndUpdate(req.user._id, {
     avatar,
-  })
+  }, opt)
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(badRequest.status).send({ message: badRequest.message });
+      } else {
+        res.status(serverError.status).send({ message: serverError.message });
       }
-      res.status(serverError.status).send({ message: serverError.message });
     });
 };
 

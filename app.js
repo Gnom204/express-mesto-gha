@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 
 const router = require('./routes/user');
 const cardRouter = require('./routes/card');
+const { notFound } = require('./utils/constants');
 
 const { PORT = 3000 } = process.env;
 
@@ -19,6 +20,9 @@ app.use((req, res, next) => {
   };
 
   next();
+});
+app.use((req, res) => {
+  res.status(notFound.status).send({ message: notFound.message });
 });
 
 app.use(router);
