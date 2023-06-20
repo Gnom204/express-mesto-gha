@@ -1,3 +1,5 @@
+const regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gm;
+
 const badRequest = {
   status: 400,
   message: 'переданы невалидные данные',
@@ -13,6 +15,11 @@ const serverError = {
   message: 'Произошла ошибка',
 };
 
+const unauthorized = {
+  status: 401,
+  message: 'Не авторизован',
+};
+
 const goodRequest = {
   status: 200,
   message: 'Успешный запрос',
@@ -23,10 +30,15 @@ const createRequest = {
   message: 'Объект создан',
 };
 
+const secretKey = 'MY-MEGA-SECRET-KEY';
+
 module.exports = {
   badRequest,
   serverError,
   goodRequest,
   createRequest,
   notFound,
+  secretKey,
+  unauthorized,
+  regex,
 };
