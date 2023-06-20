@@ -1,3 +1,5 @@
+const ForbiddenError = require('../errors/forbidden-error');
+const NotFoundError = require('../errors/not-found-err');
 const Card = require('../models/card');
 const {
   badRequest,
@@ -34,11 +36,16 @@ const createCards = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const { cardId } = req.params;
+  const { userId } = req.user._id;
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        res.status(notFound.status).send({ message: notFound.message });
+        throw new NotFoundError(notFound.message);
+      } else if (card.owner.toString() !== userId) {
+        throw new ForbiddenError('У вас нет прав для удаления карточки');
       } else {
+        Card.findByIdAndRemove(cardId);
         res.status(goodRequest.status).send({ message: goodRequest.message });
       }
     })
@@ -59,7 +66,7 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(notFound.status).send({ message: notFound.message });
+        throw new NotFoundError(notFound.message);
       } else {
         res.status(200).send(card.likes);
       }
@@ -81,7 +88,7 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(notFound.status).send({ message: notFound.message });
+        throw new NotFoundError(notFound.message);
       } else {
         res.status(200).send(card.likes);
       }
