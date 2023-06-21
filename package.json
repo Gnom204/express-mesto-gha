@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/Gnom204/express-mesto-gha.git"
   },
-  "author": "",
+  "author": "Gnom204",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Gnom204/express-mesto-gha/issues"
@@ -28,6 +28,8 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
+    "celebrate": "^15.0.1",
+    "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
     "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",

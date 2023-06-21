@@ -11,33 +11,33 @@ const {
   notFound,
   goodRequest,
   secretKey,
-  unauthorized,
 } = require('../utils/constants'); // Статусы и сообщения об ошибке
+const ServerError = require('../errors/server-error');
 
-const login = async (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email })
     .orFail()
-    .then(async (user) => {
-      const matched = await bcrypt.compare(password, user.password);
-
-      if (matched) {
-        const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
-        res.cookie('jwt', token, {
-          maxAge: 3600,
-          httpOnly: true,
-        }).send(user.toJSON());
-      } else {
-        throw new BadRequestError('Неправильные email или пароль');
-      }
+    .then((user) => {
+      bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (matched) {
+            const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
+            res.cookie('jwt', token, {
+              maxAge: 3600,
+              httpOnly: true,
+            }).send(user.toJSON());
+          } else {
+            throw new BadRequestError('Неправильные email или пароль');
+          }
+        })
+        .catch(next);
     })
-    .catch((err) => {
-      res.status(unauthorized.status).send(err.message);
-    });
+    .catch(next);
 };
 
-const getUserInfo = (req, res) => {
+const getUserInfo = (req, res, next) => {
   const { userId } = req.body;
   User.findById(userId)
     .then((user) => {
@@ -47,26 +47,22 @@ const getUserInfo = (req, res) => {
         res.status(goodRequest.status).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(badRequest.status).send({ message: badRequest.message });
-      } else {
-        res.status(serverError.status).send({ message: serverError.message });
-      }
-    });
+    .catch(next);
 };
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
-      res.status(goodRequest.status).send({ data: users });
+      if (!users) {
+        throw new ServerError(serverError.message);
+      } else {
+        res.status(goodRequest.status).send({ data: users });
+      }
     })
-    .catch(() => {
-      res.status(serverError.status).send({ message: serverError.message });
-    });
+    .catch(next);
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .then((user) => {
@@ -76,16 +72,10 @@ const getUserById = (req, res) => {
         res.status(goodRequest.status).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(badRequest.status).send({ message: badRequest.message });
-      } else {
-        res.status(serverError.status).send({ message: serverError.message });
-      }
-    });
+    .catch(next);
 };
 
-const createUsers = (req, res) => {
+const createUsers = (req, res, next) => {
   const {
     name,
     about,
@@ -104,21 +94,20 @@ const createUsers = (req, res) => {
         password: hash,
       })
         .then((user) => {
-          res.status(createRequest.status).send({ data: user.toJSON() });
-        })
-        .catch((err) => {
-          if (err.name === 'ValidationError') {
-            res.status(badRequest.status).send({ message: badRequest.message });
+          if (user) {
+            res.status(createRequest.status).send({ data: user.toJSON() });
           } else {
-            res.status(serverError.status).send({ message: serverError.message });
+            throw new BadRequestError(badRequest.message);
           }
-        });
-    });
+        })
+        .catch(next);
+    })
+    .catch(next);
 };
 
 const opt = { new: true, runValidators: true };
 
-const updateProfile = (req, res) => {
+const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, {
@@ -126,33 +115,29 @@ const updateProfile = (req, res) => {
     about,
   }, opt)
     .then((user) => {
-      res.status(goodRequest.status).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(badRequest.status).send({ message: badRequest.message });
+      if (!user) {
+        throw new BadRequestError(badRequest.message);
       } else {
-        res.status(serverError.status).send({ message: serverError.message });
+        res.status(goodRequest.status).send(user);
       }
-    });
+    })
+    .catch(next);
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, {
     avatar,
   }, opt)
     .then((user) => {
-      res.status(goodRequest.status).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(badRequest.status).send({ message: badRequest.message });
+      if (!user) {
+        throw new BadRequestError(badRequest.message);
       } else {
-        res.status(serverError.status).send({ message: serverError.message });
+        res.status(goodRequest.status).send(user);
       }
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
