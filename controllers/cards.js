@@ -1,11 +1,7 @@
-const BadRequestError = require('../errors/bad-request-err');
 const ForbiddenError = require('../errors/forbidden-error');
 const NotFoundError = require('../errors/not-found-err');
-const ServerError = require('../errors/server-error');
 const Card = require('../models/card');
 const {
-  badRequest,
-  serverError,
   createRequest,
   notFound,
   goodRequest,
@@ -15,7 +11,7 @@ const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
       if (!cards) {
-        throw new ServerError(serverError.message);
+        throw new NotFoundError(notFound.message);
       } else {
         res.status(goodRequest.status).send({ data: cards });
       }
@@ -29,7 +25,7 @@ const createCards = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       if (!card) {
-        throw new BadRequestError(badRequest.message);
+        throw new NotFoundError(notFound.message);
       } else {
         res.status(createRequest.status).send({ data: card });
       }
@@ -39,7 +35,7 @@ const createCards = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  const { userId } = req.user._id;
+  const userId = req.user._id;
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
