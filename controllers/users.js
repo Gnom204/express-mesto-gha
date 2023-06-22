@@ -18,7 +18,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email })
-    .orFail(new NotFoundError('Пользователь не найден'))
+    .orFail(new UnauthorizedError('Пользователь не авторизован'))
     .then((user) => {
       bcrypt.compare(password, user.password)
         .then((matched) => {
