@@ -25,7 +25,7 @@ const login = (req, res, next) => {
           if (matched) {
             const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
             res.cookie('jwt', token, {
-              maxAge: 36000,
+              maxAge: 300000,
               httpOnly: true,
             }).send(user.toJSON());
           } else {
@@ -49,11 +49,7 @@ const getUserInfo = (req, res, next) => {
 const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
-      if (!users) {
-        throw new ServerError(serverError.message);
-      } else {
-        res.status(goodRequest.status).send({ data: users });
-      }
+      res.status(goodRequest.status).send({ data: users });
     })
     .catch(next);
 };
@@ -95,6 +91,8 @@ const createUsers = (req, res, next) => {
         .catch((err) => {
           if (err.code === 11000) {
             next(new ConflictError('Пользователь уже существует'));
+          } else {
+            next(new ServerError(serverError.message));
           }
         });
     })

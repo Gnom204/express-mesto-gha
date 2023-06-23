@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const router = require('./routes/index');
 const errorHandler = require('./middlewares/error');
 const { notFound } = require('./utils/constants');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
 
@@ -18,11 +19,10 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(router);
 app.use(errors());
-app.use(errorHandler);
-
-app.use((req, res) => {
-  res.status(notFound.status).send({ message: notFound.message });
+app.use(() => {
+  throw new NotFoundError(notFound.message);
 });
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Сервер работает на порту ${PORT}`);
